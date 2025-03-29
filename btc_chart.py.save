@@ -1,0 +1,53 @@
+i≈mport yfinance as yf
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Bitcoin-Daten der letzten 90 Tage laden
+btc = yf.download("BTC-USD", period="90d", interval="1d")
+btc.dropna(inplace=True)  # Fehlende Werte entfernen
+
+# Fibonacci-Level berechnen
+recent_high = btc['High'].max().item()
+recent_low = btc['Low'].min().item()
+
+fib_levels = {
+    '0.0%': recent_high,
+    '23.6%': recent_high - 0.236 * (recent_high - recent_low),
+    '38.2%': recent_high - 0.382 * (recent_high - recent_low),
+    '50.0%': recent_high - 0.5 * (recent_high - recent_low),
+    '61.8%': recent_high - 0.618 * (recent_high - recent_low),
+    '78.6%': recent_high - 0.786 * (recent_high - recent_low),
+    '100.0%': recent_low
+}
+
+# Gleitende Durchschnitte berechnen
+btc['SMA_20'] = btc['Close'].rolling(window=20).mean()
+btc['SMA_50'] = btc['Close'].rolling(window=50).mean()
+
+# Chart erstellen
+fig, ax = plt.subplots(figsize=(14, 8))
+ax.plot(btc.index, btc['Close'], label='BTC Close', linewidth=2)
+ax.plot(btc.index, btc['SMA_20'], label='SMA 20', linestyle='--')
+ax.plot(btc.index, btc['SMA_50'], label='SMA 50', linestyle='--')
+
+# Fibonacci-Levels einzeichnen
+for label, level in fib_levels.items():
+    ax.axhline(y=level, linestyle='--', alpha=0.5, label=f'Fib {label}')
+
+# Volumen (in Mrd.) als zweite Y-Achse
+vol = btc['Volume'] / 1e9
+ax2 = ax.twinx()
+ax2.bar(list(btc.index), list(vol), color='gray', alpha=0.3, width=0.8, label='Volumen (Mrd.)')
+
+# Beschriftung & Legenden
+ax.set_title('Bitcoin Technische Analyse (Letzte 90 Tage)')
+ax.set_ylabel('Preis in USD')
+ax2.set_ylabel('Volumen (Mrd.)')
+ax.legend(loc='upper left')
+ax.grid(True)
+plt.tight_layout()
+
+# Chart anzeigen
+plt.show()
+
+
