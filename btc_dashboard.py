@@ -45,6 +45,32 @@ ema_26 = btc["Close"].ewm(span=26, adjust=False).mean()
 btc["MACD"] = ema_12 - ema_26
 btc["Signal"] = btc["MACD"].ewm(span=9, adjust=False).mean()
 
+# === SIGNALAUSWERTUNG ===
+last_rsi = btc["RSI"].iloc[-1]
+last_macd = btc["MACD"].iloc[-1]
+last_signal = btc["Signal"].iloc[-1]
+
+rsi_signal = ""
+macd_signal = ""
+
+if last_rsi < 30:
+    rsi_signal = "🟢 RSI unter 30 – möglicher Boden (Kaufsignal)"
+elif last_rsi > 70:
+    rsi_signal = "🔴 RSI über 70 – überkauft (Verkaufssignal)"
+else:
+    rsi_signal = "⚪ RSI neutral"
+
+if last_macd > last_signal:
+    macd_signal = "🟢 MACD oberhalb der Signallinie – Aufwärtstrend"
+else:
+    macd_signal = "🔴 MACD unterhalb der Signallinie – Abwärtstrend"
+
+# Anzeige im Dashboard
+st.subheader("📈 Trading-Signale")
+st.markdown(f"**RSI:** {round(last_rsi,2)} → {rsi_signal}")
+st.markdown(f"**MACD:** {round(last_macd,2)} / Signal: {round(last_signal,2)} → {macd_signal}")
+
+
 # Signalindikator
 last_rsi = btc["RSI"].iloc[-1]
 last_macd = btc["MACD"].iloc[-1]
@@ -82,9 +108,26 @@ ax2.grid(True)
 # MACD
 ax3.plot(btc.index, btc["MACD"], label="MACD", color="blue")
 ax3.plot(btc.index, btc["Signal"], label="Signal", color="orange", linestyle="--")
+
+# BUY/SELL-Marker anzeigen
+if last_macd > last_signal and last_rsi < 30:
+    ax3.annotate("BUY", xy=(btc.index[-1], last_macd),
+                 xytext=(btc.index[-1], last_macd + 200),
+                 arrowprops=dict(facecolor='green', shrink=0.05),
+                 fontsize=10, color='green', weight='bold')
+
+if last_macd < last_signal and last_rsi > 70:
+    ax3.annotate("SELL", xy=(btc.index[-1], last_macd),
+                 xytext=(btc.index[-1], last_macd - 200),
+                 arrowprops=dict(facecolor='red', shrink=0.05),
+                 fontsize=10, color='red', weight='bold')
+
+
 ax3.set_ylabel("MACD")
 ax3.legend()
 ax3.grid(True)
+
+
 
 st.pyplot(fig)
 
