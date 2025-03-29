@@ -66,7 +66,7 @@ ax1.plot(btc.index, btc["Close"], label="BTC Close", linewidth=2)
 ax1.plot(btc.index, btc["SMA_20"], label="SMA 20", linestyle="--")
 ax1.plot(btc.index, btc["SMA_50"], label="SMA 50", linestyle="--")
 for label, level in levels.items():
-    ax1.axhline(level, linestyle="--", alpha=0.4, label=f"Fib {label}")
+ax1.axhline(float(level), linestyle="--", alpha=0.4, label=f"Fib {label}")
 ax1.set_ylabel("Preis (USD)")
 ax1.legend()
 ax1.grid(True)
